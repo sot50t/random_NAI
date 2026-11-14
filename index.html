@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>SOT NAI V5 Character Generator</title>
+        <style>
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                background-color: #ffffff;
+                color: #111111;
+                font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", Roboto, sans-serif;
+                line-height: 1.5;
+                padding: 48px 64px;
+                -webkit-font-smoothing: antialiased;
+            }
+
+            .container {
+                display: grid;
+                grid-template-columns: 1.35fr 1fr;
+                gap: 80px;
+                max-width: 1440px;
+                margin: 0 auto;
+            }
+
+            h1 {
+                font-size: 18px;
+                font-weight: 700;
+                letter-spacing: -0.02em;
+                margin-bottom: 36px;
+                color: #000000;
+            }
+
+            .section-title {
+                font-size: 11px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: #999999;
+                margin-bottom: 18px;
+            }
+
+            .filter-area {
+                margin-bottom: 48px;
+            }
+
+            .filter-row {
+                display: flex;
+                align-items: baseline;
+                margin-bottom: 14px;
+                gap: 20px;
+            }
+
+            .filter-label {
+                width: 96px;
+                flex-shrink: 0;
+                font-size: 13px;
+                font-weight: 600;
+                color: #333333;
+            }
+
+            .filter-options {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 14px 18px;
+            }
+
+            label.toggle-item {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 13px;
+                color: #555555;
+                cursor: pointer;
+                user-select: none;
+                transition: color 0.15s;
+            }
+
+            label.toggle-item:hover {
+                color: #000000;
+            }
+
+            input[type="checkbox"],
+            input[type="radio"] {
+                accent-color: #111111;
+                width: 14px;
+                height: 14px;
+                cursor: pointer;
+            }
+
+            input:checked + span {
+                color: #000000;
+                font-weight: 600;
+            }
+
+            .attr-list {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 14px 40px;
+            }
+
+            .attr-item {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 4px 0;
+                gap: 12px;
+            }
+
+            .attr-info {
+                display: flex;
+                flex-direction: column;
+                min-width: 0;
+            }
+
+            .attr-name {
+                font-size: 11px;
+                font-weight: 600;
+                color: #888888;
+            }
+
+            .attr-value {
+                font-size: 14px;
+                font-weight: 500;
+                color: #111111;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .attr-value.empty {
+                color: #bbbbbb;
+                font-weight: 400;
+            }
+
+            .attr-actions {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                flex-shrink: 0;
+            }
+
+            button {
+                background: transparent;
+                border: none;
+                font-family: inherit;
+                cursor: pointer;
+                transition: all 0.15s ease;
+            }
+
+            .icon-btn {
+                font-size: 12px;
+                padding: 4px 6px;
+                color: #888888;
+                border-radius: 4px;
+            }
+
+            .icon-btn:hover {
+                color: #000000;
+                background-color: #f4f4f4;
+            }
+
+            .icon-btn.locked {
+                color: #000000;
+                font-weight: 700;
+                background-color: #efefef;
+            }
+
+            .right-col {
+                position: sticky;
+                top: 48px;
+                height: fit-content;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .action-bar {
+                display: flex;
+                gap: 12px;
+                margin-bottom: 24px;
+            }
+
+            .primary-btn {
+                background-color: #111111;
+                color: #ffffff;
+                font-size: 14px;
+                font-weight: 600;
+                padding: 12px 24px;
+                border-radius: 4px;
+            }
+
+            .primary-btn:hover {
+                background-color: #333333;
+            }
+
+            .secondary-btn {
+                background-color: #f3f3f3;
+                color: #111111;
+                font-size: 14px;
+                font-weight: 600;
+                padding: 12px 20px;
+                border-radius: 4px;
+            }
+
+            .secondary-btn:hover {
+                background-color: #e6e6e6;
+            }
+
+            .prompt-output {
+                width: 100%;
+                min-height: 280px;
+                border: none;
+                outline: none;
+                resize: vertical;
+                background: transparent;
+                font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+                font-size: 14px;
+                line-height: 1.75;
+                color: #111111;
+            }
+
+            .status-msg {
+                margin-top: 12px;
+                font-size: 12px;
+                color: #666666;
+                height: 18px;
+            }
+
+            @media (max-width: 960px) {
+                body {
+                    padding: 28px 24px;
+                }
+                .container {
+                    grid-template-columns: 1fr;
+                    gap: 48px;
+                }
+                .attr-list {
+                    grid-template-columns: 1fr;
+                }
+                .right-col {
+                    position: static;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="left-col">
+                <h1>NAI V5 외관 생성기</h1>
+
+                <div class="filter-area">
+                    <div class="section-title">Options</div>
+
+                    <div class="filter-row">
+                        <div class="filter-label">성별</div>
+                        <div class="filter-options">
+                            <label class="toggle-item"
+                                ><input type="radio" name="gender" value="random" checked /><span>랜덤</span></label
+                            >
+                            <label class="toggle-item"
+                                ><input type="radio" name="gender" value="female" /><span>여성</span></label
+                            >
+                            <label class="toggle-item"
+                                ><input type="radio" name="gender" value="male" /><span>남성</span></label
+                            >
+                        </div>
+                    </div>
+
+                    <div class="filter-row">
+                        <div class="filter-label">연령대</div>
+                        <div class="filter-options">
+                            <label class="toggle-item"
+                                ><input type="checkbox" name="age" value="child" /><span>유아/어린이</span></label
+                            >
+                            <label class="toggle-item"
+                                ><input type="checkbox" name="age" value="teen" checked /><span
+                                    >청소년/소녀·소년</span
+                                ></label
+                            >
+                            <label class="toggle-item"
+                                ><input type="checkbox" name="age" value="young_adult" checked /><span
+                                    >청년</span
+                                ></label
+                            >
+                            <label class="toggle-item"
+                                ><input type="checkbox" name="age" value="mature" /><span>성숙/중년</span></label
+                            >
+                        </div>
+                    </div>
+
+                    <div class="filter-row">
+                        <div class="filter-label">뒷머리 길이</div>
+                        <div class="filter-options">
+                            <label class="toggle-item"
+                                ><input type="checkbox" name="hairLength" value="short" checked /><span
+                                    >숏컷</span
+                                ></label
+                            >
+                            <label class="toggle-item"
+                                ><input type="checkbox" name="hairLength" value="medium" checked /><span
+                                    >단발/중단발</span
+                                ></label
+                            >
+                            <label class="toggle-item"
+                                ><input type="checkbox" name="hairLength" value="long" checked /><span
+                                    >장발/초장발</span
+                                ></label
+                            >
+                        </div>
+                    </div>
+
+                    <div class="filter-row">
+                        <div class="filter-label">특수 요소</div>
+                        <div class="filter-options">
+                            <label class="toggle-item"
+                                ><input type="checkbox" id="opt-kemonomimi" /><span>수인</span></label
+                            >
+                            <label class="toggle-item"
+                                ><input type="checkbox" id="opt-nonhuman" /><span>인외</span></label
+                            >
+                            <label class="toggle-item"
+                                ><input type="checkbox" id="opt-hairpattern" /><span>헤어 투톤/패턴</span></label
+                            >
+                            <label class="toggle-item"
+                                ><input type="checkbox" id="opt-heterochromia" /><span>오드아이</span></label
+                            >
+                            <label class="toggle-item"
+                                ><input type="checkbox" id="opt-specialpupil" /><span>특이 동공</span></label
+                            >
+                        </div>
+                    </div>
+
+                    <div class="filter-row">
+                        <div class="filter-label">하의 선호</div>
+                        <div class="filter-options">
+                            <label class="toggle-item"
+                                ><input type="checkbox" name="bottomType" value="pants" checked /><span
+                                    >바지 허용</span
+                                ></label
+                            >
+                            <label class="toggle-item"
+                                ><input type="checkbox" name="bottomType" value="skirt" checked /><span
+                                    >치마 허용</span
+                                ></label
+                            >
+                        </div>
+                    </div>
+
+                    <div class="filter-row">
+                        <div class="filter-label">소품</div>
+                        <div class="filter-options">
+                            <label class="toggle-item"
+                                ><input type="checkbox" id="opt-prop" checked /><span>소품 포함</span></label
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-area">
+                    <div class="section-title">Attributes (개별 고정 및 변경 가능)</div>
+                    <div class="attr-list" id="attr-list"></div>
+                </div>
+            </div>
+
+            <div class="right-col">
+                <div class="section-title">Prompt Output (NAI V5)</div>
+                <div class="action-bar">
+                    <button class="primary-btn" id="btn-generate">전체 랜덤 생성</button>
+                    <button class="secondary-btn" id="btn-copy">프롬프트 복사</button>
+                </div>
+                <textarea
+                    class="prompt-output"
+                    id="prompt-output"
+                    spellcheck="false"
+                    placeholder="생성된 프롬프트가 이곳에 표시됩니다."></textarea>
+                <div class="status-msg" id="status-msg"></div>
+            </div>
+        </div>
+
+        <script src="script.js"></script>
+    </body>
+</html>
